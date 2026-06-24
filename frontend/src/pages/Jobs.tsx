@@ -3,7 +3,7 @@ import { getManifest, getMonth, type Job } from '../data.ts'
 
 const REPO = 'hacker-job/hacker-job-trends'
 const PAGE = 50         // rendered cards per "Load more"
-const MONTH_BATCH = 12  // months fetched per "Load older months"
+const MONTH_BATCH = 6   // months fetched per batch
 const DESC_LIMIT = 1200
 
 function fmtSalary(j: Job): string {
@@ -126,7 +126,7 @@ export default function Jobs() {
     <>
       <h1>Jobs</h1>
       <p className="sub">
-        {loading ? 'Loading…' : `${total.toLocaleString()} openings from HN "Who is Hiring?" · loaded ${jobs.length.toLocaleString()} from last ${monthsLoaded} months · newest first`}
+        {total ? `${total.toLocaleString()} openings from HN "Who is Hiring?"` : 'Loading…'}
       </p>
 
       <input className="searchbox" type="search" placeholder="Search company, role, location, stack…"
@@ -151,16 +151,22 @@ export default function Jobs() {
         <button className="clearbtn" onClick={clear}>Clear</button>
       </div>
 
-      <p className="sub" style={{ margin: '14px 0 16px' }}>
-        {filtered.length.toLocaleString()} result{filtered.length === 1 ? '' : 's'}
-      </p>
+      {!loading && (
+        <p className="sub" style={{ margin: '14px 0 16px' }}>
+          {filtered.length.toLocaleString()} result{filtered.length === 1 ? '' : 's'}
+        </p>
+      )}
 
-      <div>{filtered.slice(0, shown).map((j) => <JobCard key={j.id} j={j} />)}</div>
+      {loading
+        ? <div className="spinner" role="status" aria-label="Loading jobs" />
+        : <div>{filtered.slice(0, shown).map((j) => <JobCard key={j.id} j={j} />)}</div>}
 
-      <div className="loadbar">
-        {shown < filtered.length && <button onClick={() => setShown((s) => s + PAGE)}>Load more</button>}
-        {older > 0 && <button onClick={loadOlder}>Load older months ({older} more)</button>}
-      </div>
+      {!loading && (
+        <div className="loadbar">
+          {shown < filtered.length && <button onClick={() => setShown((s) => s + PAGE)}>Load more</button>}
+          {older > 0 && <button onClick={loadOlder}>Load older months ({older} more)</button>}
+        </div>
+      )}
     </>
   )
 }

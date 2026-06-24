@@ -1,16 +1,17 @@
 import { useEffect, useRef, useState } from 'react'
+import chartXkcd from 'chart.xkcd'
 import { getTrends, type Trends as TrendsData } from '../data.ts'
-
-declare global {
-  interface Window { chartXkcd: any }
-}
 
 const PALETTE = ['#e85d04', '#1e7d34', '#3a5a8a', '#9b2226', '#7b2cbf', '#0096c7', '#c9184a',
   '#5f7d00', '#bc6c25', '#118ab2', '#d62828', '#2a9d8f', '#6a4c93', '#ef476f']
 
+const XY = chartXkcd.XY as unknown as new (svg: SVGSVGElement, config: unknown) => void
+const upLeft = chartXkcd.config.positionType.upLeft
+
 export default function Trends() {
   const [data, setData] = useState<TrendsData | null>(null)
   const [selected, setSelected] = useState<Set<string>>(new Set())
+  const volumeRef = useRef<SVGSVGElement>(null)
   const salaryRef = useRef<SVGSVGElement>(null)
   const kwRef = useRef<SVGSVGElement>(null)
 
@@ -21,32 +22,41 @@ export default function Trends() {
     }).catch(console.error)
   }, [])
 
-  // Salary chart — draw once when data arrives.
+  // Volume + salary charts — draw once when data arrives.
   useEffect(() => {
-    const xkcd = window.chartXkcd
-    if (!data || !salaryRef.current || !xkcd) return
-    salaryRef.current.innerHTML = ''
-    new xkcd.XY(salaryRef.current, {
-      yLabel: 'USD',
-      data: { datasets: [{ label: 'Avg mid salary', data: data.salary }] },
-      options: { xTickCount: 8, yTickCount: 5, timeFormat: 'YYYY-MM', showLine: true, dotSize: 0.4,
-        legendPosition: xkcd.config.positionType.upLeft, dataColors: ['#e85d04'] },
-    })
+    if (!data) return
+    if (volumeRef.current) {
+      volumeRef.current.innerHTML = ''
+      new XY(volumeRef.current, {
+        yLabel: 'job posts',
+        data: { datasets: [{ label: 'Posts / month', data: data.volume }] },
+        options: { xTickCount: 8, yTickCount: 5, timeFormat: 'YYYY-MM', showLine: true, dotSize: 0,
+          legendPosition: upLeft, dataColors: ['#3a5a8a'] },
+      })
+    }
+    if (salaryRef.current) {
+      salaryRef.current.innerHTML = ''
+      new XY(salaryRef.current, {
+        yLabel: 'USD',
+        data: { datasets: [{ label: 'Avg mid salary', data: data.salary }] },
+        options: { xTickCount: 8, yTickCount: 5, timeFormat: 'YYYY-MM', showLine: true, dotSize: 0.4,
+          legendPosition: upLeft, dataColors: ['#e85d04'] },
+      })
+    }
   }, [data])
 
   // Keyword chart — redraw when the selection changes.
   useEffect(() => {
-    const xkcd = window.chartXkcd
-    if (!data || !kwRef.current || !xkcd) return
+    if (!data || !kwRef.current) return
     kwRef.current.innerHTML = ''
     const active = data.keywords.filter((k) => selected.has(k.key))
     if (!active.length) return
     const colorFor = (key: string) => PALETTE[data.keywords.findIndex((k) => k.key === key) % PALETTE.length]
-    new xkcd.XY(kwRef.current, {
+    new XY(kwRef.current, {
       yLabel: '% of jobs',
       data: { datasets: active.map((k) => ({ label: k.label, data: k.data })) },
       options: { xTickCount: 8, yTickCount: 5, timeFormat: 'YYYY-MM', showLine: true, dotSize: 0,
-        legendPosition: xkcd.config.positionType.upLeft, dataColors: active.map((k) => colorFor(k.key)) },
+        legendPosition: upLeft, dataColors: active.map((k) => colorFor(k.key)) },
     })
   }, [data, selected])
 
@@ -64,6 +74,12 @@ export default function Trends() {
           ? `Signals from ${data.meta.months} months of HN hiring posts (${data.meta.from} → ${data.meta.to})`
           : 'Loading…'}
       </p>
+
+      <section className="panel">
+        <h2>Job posts per month</h2>
+        <p className="hint">How many "Who is Hiring?" posts each month's thread collected.</p>
+        <svg ref={volumeRef} className="chart"></svg>
+      </section>
 
       <section className="panel">
         <h2>Average salary over time</h2>

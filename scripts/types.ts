@@ -35,6 +35,7 @@ export interface KeywordSeries {
 
 export interface Trends {
   meta: { months: number; from: string; to: string };
+  volume: TrendPoint[]; // job posts per month
   salary: TrendPoint[];
   keywords: KeywordSeries[];
 }

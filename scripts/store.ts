@@ -143,6 +143,9 @@ export function writeTrends(): { months: number } {
   for (const j of jobs) total[j.month] = (total[j.month] || 0) + 1;
   const months = Object.keys(total).filter((m) => total[m] >= MONTH_MIN_JOBS).sort();
 
+  // volume: job posts per month, full history
+  const volume = Object.keys(total).sort().map((m) => ({ x: m, y: total[m] }));
+
   // salary: avg of (min+max)/2 for USD disclosures, months with >= 5
   const salAcc: Record<string, { sum: number; n: number }> = {};
   for (const j of jobs) {
@@ -169,6 +172,7 @@ export function writeTrends(): { months: number } {
 
   fs.writeFileSync(path.join(DATA_DIR, "trends.json"), JSON.stringify({
     meta: { months: months.length, from: months[0], to: months[months.length - 1] },
+    volume,
     salary,
     keywords,
   }, null, 2) + "\n");
