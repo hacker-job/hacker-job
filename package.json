@@ -8,11 +8,10 @@
     "url": "git+https://github.com/timqian/hacker-job-trends.git"
   },
   "scripts": {
-    "update": "tsx src/update.ts",
-    "backfill": "tsx src/backfill.ts",
-    "derive": "tsx src/derive.ts",
-    "hackers": "tsx src/fetchHackers.ts",
-    "serve": "python3 -m http.server -d site 8080"
+    "update": "tsx scripts/update.ts",
+    "backfill": "tsx scripts/backfill.ts",
+    "derive": "tsx scripts/derive.ts",
+    "hackers": "tsx scripts/fetchHackers.ts"
   },
   "keywords": [
     "hacker-news",
@@ -28,7 +27,6 @@
     "typescript": "^6.0.3"
   },
   "dependencies": {
-    "chart.xkcd": "^2.0.12",
     "openai": "^6.42.0",
     "p-limit": "^7.3.0"
   }

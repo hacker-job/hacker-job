@@ -1,31 +1,17 @@
 /**
- * The data store: month JSONL files under site/data/jobs/ are the source of
- * truth (no database). Each line is one job — raw HN text + AI-extracted fields.
+ * The data store: month JSONL files under data/jobs/ are the source of truth
+ * (no database). Each line is one job — raw HN text + AI-extracted fields.
  * This module reads/writes those files and derives the manifest + trends.json.
  */
 import fs from "fs";
 import path from "path";
+import type { Job } from "./types.js";
 
-export const DATA_DIR = path.resolve("site/data");
+export type { Job } from "./types.js";
+
+export const DATA_DIR = path.resolve("data");
 export const JOBS_DIR = path.join(DATA_DIR, "jobs");
 
-export interface Job {
-  id: number;
-  author: string | null;
-  ts: number; // created_at_i (unix seconds)
-  company: string;
-  roles: string[];
-  location: string | null;
-  remote_type: string | null;
-  remote_regions: string[];
-  salary_min: number | null;
-  salary_max: number | null;
-  salary_currency: string | null;
-  tech_stack: string[];
-  job_type: string | null;
-  visa: number | null;
-  text: string;
-}
 // At load time we tag each job with the month of its file (not stored on disk).
 export type LoadedJob = Job & { month: string };
 

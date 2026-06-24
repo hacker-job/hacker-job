@@ -5,40 +5,42 @@
 Every month HN's "Who is Hiring?" thread collects hundreds of job posts, but they
 live in free-text comments — impossible to search, filter, or compare over time.
 This project parses those comments into structured data with an LLM and serves a
-small static site on top of it.
+React app on top of it.
 
 ## The site
 
-Three pages, all static (no backend):
+Three pages:
 
-- **Jobs** — recent openings (last ~12 months), newest first. Full-text search plus
-  filters for remote type, salary, location, visa sponsorship, and internships.
-  Every job links back to its original HN comment, and has a "Report an issue"
-  button (fields are AI-extracted and occasionally wrong).
+- **Jobs** — recent openings, newest first. Full-text search plus filters for
+  remote type, salary, location, visa sponsorship, and internships. Every job
+  links back to its original HN comment, and has a "Report an issue" button
+  (fields are AI-extracted and occasionally wrong). Loads recent months first and
+  lazy-loads older ones on demand.
 - **Trends** — average salary over time, and keyword popularity (% of each month's
   posts mentioning React, Python, Rust, AI, remote, … — toggle keywords to compare).
 - **Hackers** — GitHub sponsors of [@timqian](https://github.com/sponsors/timqian).
 
-### Data / app separation
-
-The app (`site/*.html`, `*.svg`) and the data (`site/data/`) are decoupled and
-fetched at runtime:
+## Layout
 
 ```
-site/
-├── index.html · trends.html · hackers.html · *.svg   # the app
-└── data/
-    ├── jobs/<month>.json   # one JSONL file per month, full history (raw HN
-    ├── jobs/index.json     #   text + AI-extracted fields in each record)
-    ├── trends.json         # salary + keyword series
-    └── hackers.json        # GitHub sponsors
+data/                 # the dataset (committed) — source of truth, no database
+  jobs/<month>.json   #   one JSONL file per month: raw HN text + AI-extracted fields
+  jobs/index.json     #   manifest of available months   (derived)
+  trends.json         #   salary + keyword series         (derived)
+  hackers.json        #   GitHub sponsors
+scripts/              # Node/TS pipeline (update, backfill, derive, hackers, store)
+  types.ts            #   shared data types — imported by both scripts and frontend
+frontend/             # Vite + React + TS app → builds to frontend/dist
 ```
 
-Each job record carries both the raw comment and the AI-extracted fields, so the
-Jobs page reads these files directly — no separate copy. A daily refresh only
-rewrites the current month's file, so past months stay byte-identical and git
-diffs stay tiny. The Jobs page loads recent months first and lazy-loads older
-ones on demand. The app can be updated without touching data, and vice-versa.
+Data and app are fully decoupled: the React app fetches `data/*` at runtime, so a
+data refresh needs no app rebuild (and vice-versa). Each job record carries both
+the raw comment and the AI-extracted fields, so the app reads them directly — no
+separate copy. A daily refresh only rewrites the current month's file, so past
+months stay byte-identical and git diffs stay tiny.
+
+> The top-level `site/` folder is the previous hand-written static version, kept
+> for reference; the live app is `frontend/`.
 
 ## Develop
 
@@ -49,33 +51,36 @@ full committed dataset, so you don't need any history:
 git clone --depth 1 --single-branch --branch main git@github.com:hacker-job/hacker-job-trends.git
 ```
 
-Requires Node 18+ (uses global `fetch`).
+Requires Node 18+.
 
 ```bash
+# the app (React)
+cd frontend && npm install && npm run dev   # http://localhost:5173
+
+# the data pipeline (run from the repo root)
 npm install
-npm run serve      # preview at http://localhost:8080 (must be http, pages fetch())
 ```
 
-There is no build step. The pages in `site/` are plain static files — edit the
-HTML, `app.css`, `nav.js`, or the per-page `*.js` directly and refresh.
+The dev server serves the repo-root `data/` at `/data/*` automatically, so the
+app has live data while you work on it.
 
 ## Data pipeline
 
-There is no database either. The month files under `site/data/jobs/` *are* the
-dataset — each line is one job with the raw HN text and the AI-extracted fields.
-They're committed, so the dataset travels with the repo.
+There is no database. The month files under `data/jobs/` *are* the dataset —
+each line is one job with the raw HN text and the AI-extracted fields. They're
+committed, so the dataset travels with the repo.
 
 **Daily incremental update** — pull new posts from the *current* "Who is hiring?"
 thread (people keep posting all month), AI-parse them, and append to the month's
 file:
 
 ```bash
-npm run update     # current thread → parse new posts → append to site/data/jobs/<month>.json
+npm run update     # current thread → parse new posts → append to data/jobs/<month>.json
 ```
 
-`update` also refreshes the manifest and `trends.json`; just commit `site/data/`
+`update` also refreshes the manifest and `trends.json`; just commit `data/`
 afterwards. If you change the derivation itself (e.g. the keyword list in
-`store.ts`), run `npm run derive` to regenerate those without new data.
+`scripts/store.ts`), run `npm run derive` to regenerate those without new data.
 
 **Full rebuild from scratch** (disaster recovery) — walk every historical
 "Who is hiring?" thread and parse anything missing. Idempotent and expensive:
@@ -92,15 +97,14 @@ server).
 To refresh the Hackers list (needs a token belonging to the sponsored account):
 
 ```bash
-GITHUB_TOKEN=ghp_xxx npm run hackers   # → site/data/hackers.json
+GITHUB_TOKEN=ghp_xxx npm run hackers   # → data/hackers.json
 ```
 
 ## Automation
 
 [`.github/workflows/update.yml`](.github/workflows/update.yml) runs `npm run
 update` daily (13:00 UTC, or on manual dispatch) and commits the refreshed
-`site/data/` back to the repo. No database to stash — the commit *is* the
-persistence.
+`data/` back to the repo. No database to stash — the commit *is* the persistence.
 
 It needs an OpenAI-compatible LLM endpoint, set as repo **secrets**:
 
@@ -112,9 +116,13 @@ It needs an OpenAI-compatible LLM endpoint, set as repo **secrets**:
 
 ## Deploy
 
-`site/` is a plain static directory — host it anywhere (GitHub Pages, Netlify,
-Cloudflare Pages, …). It's committed to the repo, so GitHub Pages can serve it
-directly from the `site/` folder.
+[`.github/workflows/deploy.yml`](.github/workflows/deploy.yml) publishes to GitHub
+Pages on every push to `main`: it builds `frontend/`, copies the dataset into
+`dist/data/`, adds a `404.html` SPA fallback, and deploys. The daily data commit
+triggers a redeploy, so the live site stays current. The custom domain is set via
+[`frontend/public/CNAME`](frontend/public/CNAME).
+
+Enable it once under **Settings → Pages → Source: GitHub Actions**.
 
 ## License
 

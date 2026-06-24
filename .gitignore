@@ -1,10 +1,13 @@
 # dependencies
 node_modules/
 
-# source data: the SQLite DB (>100MB) and raw HN cache are regenerable via the
-# fetch → import → parse pipeline, so they're not tracked. (The generated app
-# data under site/data/ IS tracked — that's what the site serves.)
-/data/
+# The dataset (data/jobs/, data/trends.json, data/hackers.json) IS tracked.
+# DB-era leftovers under data/ are dead and regenerable — not tracked.
+/data/jobs.db
+/data/items/
+/data/stories.json
+/data/parsed_jobs.jsonl
+/data/parse_errors.jsonl
 
 # working notes — keep only README.md
 *.md
