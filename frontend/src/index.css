@@ -41,9 +41,6 @@ h1 small { font-size: 0.92rem; font-weight: 400; color: var(--muted); letter-spa
 h1 small a { color: var(--muted); text-decoration: underline; text-underline-offset: 2px; }
 h1 small a:hover { color: var(--accent); }
 p.sub { color: var(--muted); font-size: 0.9rem; margin: 0 0 24px; }
-.linkbtn { background: none; border: 0; padding: 0; font: inherit; color: var(--accent); cursor: pointer;
-  text-decoration: underline; text-underline-offset: 2px; }
-.linkbtn:hover { opacity: 0.8; }
 
 /* Loading */
 .spinner { width: 28px; height: 28px; margin: 64px auto; border: 3px solid var(--line); border-top-color: var(--accent);

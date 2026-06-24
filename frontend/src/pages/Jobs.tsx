@@ -63,9 +63,7 @@ function JobCard({ j }: { j: Job }) {
 
 export default function Jobs() {
   const [jobs, setJobs] = useState<Job[]>([])
-  const [months, setMonths] = useState<string[]>([])
   const [monthsLoaded, setMonthsLoaded] = useState(0)
-  const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(true)
   const [shown, setShown] = useState(PAGE)
 
@@ -80,8 +78,6 @@ export default function Jobs() {
     let cancelled = false
     getManifest().then(async (m) => {
       if (cancelled) return
-      setMonths(m.months)
-      setTotal(m.count)
       const slice = m.months.slice(0, MONTH_BATCH)
       const arrs = await Promise.all(slice.map(getMonth))
       if (cancelled) return
@@ -91,17 +87,6 @@ export default function Jobs() {
     }).catch((e) => { console.error(e); setLoading(false) })
     return () => { cancelled = true }
   }, [])
-
-  const busy = useRef(false)
-  async function loadOlder() {
-    if (busy.current || monthsLoaded >= months.length) return
-    busy.current = true
-    const slice = months.slice(monthsLoaded, monthsLoaded + MONTH_BATCH)
-    const arrs = await Promise.all(slice.map(getMonth))
-    setJobs((prev) => [...prev, ...arrs.flat()].sort((a, b) => b.ts - a.ts))
-    setMonthsLoaded((n) => n + slice.length)
-    busy.current = false
-  }
 
   const filtered = useMemo(() => {
     const terms = q.trim().toLowerCase().split(/\s+/).filter(Boolean)
@@ -123,31 +108,25 @@ export default function Jobs() {
 
   useEffect(() => { setShown(PAGE) }, [q, remote, minSal, loc, visa, intern])
 
-  const older = months.length - monthsLoaded
   const clear = () => { setQ(''); setRemote(''); setMinSal(0); setLoc(''); setVisa(false); setIntern(false) }
 
-  // Infinite scroll: reveal more cards, then pull more months as the user nears the end.
+  // Infinite scroll: reveal more already-loaded cards as the user nears the end.
   const sentinel = useRef<HTMLDivElement>(null)
   useEffect(() => {
     const el = sentinel.current
-    if (!el || loading) return
+    if (!el || loading || shown >= filtered.length) return
     const io = new IntersectionObserver((entries) => {
-      if (!entries[0].isIntersecting) return
-      if (shown < filtered.length) setShown((s) => s + PAGE)
-      else if (monthsLoaded < months.length) loadOlder()
+      if (entries[0].isIntersecting) setShown((s) => s + PAGE)
     }, { rootMargin: '800px' })
     io.observe(el)
     return () => io.disconnect()
-  }, [loading, shown, filtered.length, monthsLoaded, months.length]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [loading, shown, filtered.length])
 
   return (
     <>
       <h1>Jobs <small>from <a href="https://news.ycombinator.com/submitted?id=whoishiring" target="_blank" rel="noopener">HN "Who is hiring"</a></small></h1>
       <p className="sub">
-        {total
-          ? <>loaded {jobs.length.toLocaleString()} openings from last {monthsLoaded} months
-              {older > 0 && <> · <button className="linkbtn" onClick={loadOlder}>load {Math.min(MONTH_BATCH, older)} more months</button></>}</>
-          : 'Loading…'}
+        {loading ? 'Loading…' : `loaded ${jobs.length.toLocaleString()} openings from last ${monthsLoaded} months`}
       </p>
 
       <input className="searchbox" type="search" placeholder="Search company, role, location, stack…"
