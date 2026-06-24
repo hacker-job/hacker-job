@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { marked } from 'marked'
 import { getFounder, getHackers, type Founder, type Hacker } from '../data.ts'
-
+import GitHubButton from 'react-github-btn'
 function HackerCard({ h }: { h: Hacker }) {
   const url = h.url || 'https://github.com/' + h.login
   const avatar = h.avatar || 'https://github.com/' + h.login + '.png'
@@ -56,10 +56,12 @@ export default function Hackers() {
   }, [])
 
   return (
-    <>
+    <div style={{ position: 'relative' }}>
       <h1>Hackers</h1>
       <p className="sub">Talented people who back hacker·job. Reach out, collaborate, or hire them.</p>
-
+      <div style={{ position: 'absolute', top: 0, right: 0, margin: '8px 12px 0 0' }}>
+        <GitHubButton href="https://github.com/hacker-job/hacker-job-trends" data-color-scheme="no-preference: light; light: light; dark: dark;" data-size="large" data-show-count="true" aria-label="Star hacker-job/hacker-job-trends on GitHub">Star</GitHubButton>
+      </div>
       {founder && <FounderCard f={founder} />}
 
       {hackers.length > 0 && (
@@ -73,6 +75,6 @@ export default function Hackers() {
           <li>Your info will appear here soon. ✨</li>
         </ol>
       </section>
-    </>
+    </div>
   )
 }

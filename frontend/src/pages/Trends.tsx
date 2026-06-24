@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import chartXkcd from 'chart.xkcd'
 import { getTrends, type Trends as TrendsData } from '../data.ts'
+import GitHubButton from 'react-github-btn'
 
 const PALETTE = ['#e85d04', '#1e7d34', '#3a5a8a', '#9b2226', '#7b2cbf', '#0096c7', '#c9184a',
   '#5f7d00', '#bc6c25', '#118ab2', '#d62828', '#2a9d8f', '#6a4c93', '#ef476f']
@@ -71,13 +72,19 @@ export default function Trends() {
   })
 
   return (
-    <>
+    <div style={{ position: 'relative' }}>
       <h1>Trends</h1>
+
+
       <p className="sub">
         {data
           ? `Signals from ${data.meta.jobs.toLocaleString()} HN hiring posts (${data.meta.from} → ${data.meta.to})`
           : 'Loading…'}
       </p>
+
+      <div style={{ position: 'absolute', top: 0, right: 0, margin: '8px 12px 0 0' }}>
+        <GitHubButton href="https://github.com/hacker-job/hacker-job-trends" data-color-scheme="no-preference: light; light: light; dark: dark;" data-size="large" data-show-count="true" aria-label="Star hacker-job/hacker-job-trends on GitHub">Star</GitHubButton>
+      </div>
 
       <section className="panel">
         <h2>Average salary over time</h2>
@@ -113,6 +120,6 @@ export default function Trends() {
           <svg ref={kwRef} className="chart"></svg>
         </div>
       </section>
-    </>
+    </div>
   )
 }
