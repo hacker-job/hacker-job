@@ -125,9 +125,6 @@ export default function Jobs() {
   return (
     <>
       <h1>Jobs <small>from <a href="https://news.ycombinator.com/submitted?id=whoishiring" target="_blank" rel="noopener">HN "Who is hiring"</a></small></h1>
-      <p className="sub">
-        {loading ? 'Loading…' : `loaded ${jobs.length.toLocaleString()} openings from last ${monthsLoaded} months`}
-      </p>
 
       <input className="searchbox" type="search" placeholder="Search company, role, location, stack…"
         value={q} onChange={(e) => setQ(e.target.value)} />
@@ -151,9 +148,11 @@ export default function Jobs() {
         <button className="clearbtn" onClick={clear}>Clear</button>
       </div>
 
-      {!loading && filtered.length !== jobs.length && (
-        <p className="sub" style={{ margin: '14px 0 16px' }}>
-          {filtered.length.toLocaleString()} result{filtered.length === 1 ? '' : 's'}
+      {!loading && (
+        <p className="sub statusline">
+          {filtered.length === jobs.length
+            ? `loaded ${jobs.length.toLocaleString()} openings from last ${monthsLoaded} months`
+            : `${filtered.length.toLocaleString()} of ${jobs.length.toLocaleString()} openings match`}
         </p>
       )}
 
