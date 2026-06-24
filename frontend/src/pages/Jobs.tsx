@@ -37,14 +37,12 @@ function JobCard({ j }: { j: Job }) {
         <span className="date">{fmtDate(j.ts)}</span>
       </div>
       {j.roles.length > 0 && <div className="roles">{j.roles.join(' · ')}</div>}
-      <div className="badges">
-        {j.remote_type && <span className={'badge rt-' + j.remote_type}>{j.remote_type}</span>}
-        {j.job_type && <span className="badge">{j.job_type}</span>}
-        {!!j.visa && <span className="badge">visa</span>}
-        {sal && <span className="badge sal">{sal}</span>}
-      </div>
-      {j.tech_stack.length > 0 && (
-        <div className="tags">
+      {(j.remote_type || j.job_type || j.visa || sal || j.tech_stack.length > 0) && (
+        <div className="meta">
+          {j.remote_type && <span className={'badge rt-' + j.remote_type}>{j.remote_type}</span>}
+          {j.job_type && <span className="badge">{j.job_type}</span>}
+          {!!j.visa && <span className="badge">visa</span>}
+          {sal && <span className="badge sal">{sal}</span>}
           {j.tech_stack.slice(0, 12).map((t, i) => <span className="tag" key={i}>{t}</span>)}
         </div>
       )}

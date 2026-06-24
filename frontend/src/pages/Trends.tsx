@@ -8,6 +8,10 @@ const PALETTE = ['#e85d04', '#1e7d34', '#3a5a8a', '#9b2226', '#7b2cbf', '#0096c7
 const XY = chartXkcd.XY as unknown as new (svg: SVGSVGElement, config: unknown) => void
 const upLeft = chartXkcd.config.positionType.upLeft
 
+const REPO = 'hacker-job/hacker-job-trends'
+const SUGGEST_URL = `https://github.com/${REPO}/issues/new?title=${encodeURIComponent('Suggest keyword: ')}`
+  + `&body=${encodeURIComponent('Add this keyword to the Trends chart.\n\nKeyword: \nWhy it matters: ')}`
+
 export default function Trends() {
   const [data, setData] = useState<TrendsData | null>(null)
   const [selected, setSelected] = useState<Set<string>>(new Set())
@@ -76,18 +80,18 @@ export default function Trends() {
       </p>
 
       <section className="panel">
+        <h2>Average salary over time</h2>
+        <p className="hint">USD only · months with ≥5 salary disclosures · mid = (min + max) / 2</p>
+        <svg ref={salaryRef} className="chart"></svg>
+      </section>
+
+      <section className="panel">
         <h2>Job posts per month</h2>
         <p className="hint">How many "Who is Hiring?" posts each month's thread collected.</p>
         <svg ref={volumeRef} className="chart"></svg>
         <p className="note">
           <b>Mar 2020</b> — COVID-19 declared a pandemic&nbsp;&nbsp;·&nbsp;&nbsp;<b>Nov 30, 2022</b> — ChatGPT released
         </p>
-      </section>
-
-      <section className="panel">
-        <h2>Average salary over time</h2>
-        <p className="hint">USD only · months with ≥5 salary disclosures · mid = (min + max) / 2</p>
-        <svg ref={salaryRef} className="chart"></svg>
       </section>
 
       <section className="panel">
@@ -99,6 +103,7 @@ export default function Trends() {
               {k.label}
             </button>
           ))}
+          <a className="chip suggest" href={SUGGEST_URL} target="_blank" rel="noopener">+ Suggest new keyword</a>
         </div>
         <svg ref={kwRef} className="chart"></svg>
       </section>
