@@ -71,7 +71,7 @@ export default function Trends() {
       <h1>Trends</h1>
       <p className="sub">
         {data
-          ? `Signals from ${data.meta.months} months of HN hiring posts (${data.meta.from} → ${data.meta.to})`
+          ? `Signals from ${data.meta.jobs.toLocaleString()} HN hiring posts (${data.meta.from} → ${data.meta.to})`
           : 'Loading…'}
       </p>
 

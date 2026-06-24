@@ -171,7 +171,7 @@ export function writeTrends(): { months: number } {
   });
 
   fs.writeFileSync(path.join(DATA_DIR, "trends.json"), JSON.stringify({
-    meta: { months: months.length, from: months[0], to: months[months.length - 1] },
+    meta: { jobs: jobs.length, months: months.length, from: months[0], to: months[months.length - 1] },
     volume,
     salary,
     keywords,
