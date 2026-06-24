@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { getHackers, type Hacker } from '../data.ts'
+import { marked } from 'marked'
+import { getFounder, getHackers, type Founder, type Hacker } from '../data.ts'
 
 function HackerCard({ h }: { h: Hacker }) {
   const url = h.url || 'https://github.com/' + h.login
@@ -14,11 +15,44 @@ function HackerCard({ h }: { h: Hacker }) {
   )
 }
 
+function href(blog: string) {
+  return /^https?:\/\//.test(blog) ? blog : 'https://' + blog
+}
+
+function FounderCard({ f }: { f: Founder }) {
+  return (
+    <section className="founder">
+      <div className="founder-head">
+        <img src={f.avatar} alt={f.login} />
+        <div>
+          <div className="founder-name">
+            {f.name || f.login}{' '}
+            <a href={f.html_url} target="_blank" rel="noopener">@{f.login}</a>
+          </div>
+          {f.bio && <div className="founder-bio">{f.bio}</div>}
+          <div className="founder-links">
+            {f.location && <span>📍 {f.location}</span>}
+            {f.company && <span>🏢 {f.company}</span>}
+            {f.blog && <a href={href(f.blog)} target="_blank" rel="noopener">🔗 {f.blog}</a>}
+            {f.twitter && <a href={`https://x.com/${f.twitter}`} target="_blank" rel="noopener">𝕏 @{f.twitter}</a>}
+            <span>★ {f.followers.toLocaleString()} followers</span>
+          </div>
+        </div>
+      </div>
+      {f.readme && (
+        <div className="md" dangerouslySetInnerHTML={{ __html: marked.parse(f.readme) as string }} />
+      )}
+    </section>
+  )
+}
+
 export default function Hackers() {
-  const [hackers, setHackers] = useState<Hacker[] | null>(null)
+  const [founder, setFounder] = useState<Founder | null>(null)
+  const [hackers, setHackers] = useState<Hacker[]>([])
 
   useEffect(() => {
-    getHackers().then(setHackers).catch((e) => { console.error(e); setHackers([]) })
+    getFounder().then(setFounder).catch(console.error)
+    getHackers().then(setHackers).catch(() => setHackers([]))
   }, [])
 
   return (
@@ -26,14 +60,10 @@ export default function Hackers() {
       <h1>Hackers</h1>
       <p className="sub">Talented people who back hacker·job. Reach out, collaborate, or hire them.</p>
 
-      {hackers && hackers.length > 0 ? (
+      {founder && <FounderCard f={founder} />}
+
+      {hackers.length > 0 && (
         <div className="hackers-grid">{hackers.map((h) => <HackerCard key={h.login} h={h} />)}</div>
-      ) : (
-        <div className="empty">
-          <div className="empty-icon">🧑‍💻</div>
-          <p>No hackers listed yet.</p>
-          <p className="sub">Sponsors will appear here soon — be the first!</p>
-        </div>
       )}
 
       <section className="join">

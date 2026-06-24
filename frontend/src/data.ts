@@ -1,8 +1,8 @@
 // Data access — fetches the committed dataset served at /data/*.
 // Types are shared with the scripts (single source of truth).
-import type { Job, Trends, JobsManifest, Hacker } from '../../scripts/types'
+import type { Job, Trends, JobsManifest, Hacker, Founder } from '../../scripts/types'
 
-export type { Job, Trends, JobsManifest, Hacker }
+export type { Job, Trends, JobsManifest, Hacker, Founder }
 
 const base = import.meta.env.BASE_URL // '/' (or the configured subpath)
 
@@ -21,4 +21,8 @@ export function getTrends(): Promise<Trends> {
 
 export function getHackers(): Promise<Hacker[]> {
   return fetch(base + 'data/hackers.json').then((r) => r.json())
+}
+
+export function getFounder(): Promise<Founder> {
+  return fetch(base + 'data/founder.json').then((r) => r.json())
 }

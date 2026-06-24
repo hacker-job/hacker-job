@@ -1,9 +1,9 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { getManifest, getMonth, type Job } from '../data.ts'
 
 const REPO = 'hacker-job/hacker-job-trends'
-const PAGE = 50         // rendered cards per "Load more"
-const MONTH_BATCH = 6   // months fetched per batch
+const PAGE = 50         // rendered cards revealed per scroll step
+const MONTH_BATCH = 3   // months fetched per batch
 const DESC_LIMIT = 1200
 
 function fmtSalary(j: Job): string {
@@ -92,11 +92,15 @@ export default function Jobs() {
     return () => { cancelled = true }
   }, [])
 
+  const busy = useRef(false)
   async function loadOlder() {
+    if (busy.current || monthsLoaded >= months.length) return
+    busy.current = true
     const slice = months.slice(monthsLoaded, monthsLoaded + MONTH_BATCH)
     const arrs = await Promise.all(slice.map(getMonth))
     setJobs((prev) => [...prev, ...arrs.flat()].sort((a, b) => b.ts - a.ts))
     setMonthsLoaded((n) => n + slice.length)
+    busy.current = false
   }
 
   const filtered = useMemo(() => {
@@ -122,11 +126,28 @@ export default function Jobs() {
   const older = months.length - monthsLoaded
   const clear = () => { setQ(''); setRemote(''); setMinSal(0); setLoc(''); setVisa(false); setIntern(false) }
 
+  // Infinite scroll: reveal more cards, then pull more months as the user nears the end.
+  const sentinel = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    const el = sentinel.current
+    if (!el || loading) return
+    const io = new IntersectionObserver((entries) => {
+      if (!entries[0].isIntersecting) return
+      if (shown < filtered.length) setShown((s) => s + PAGE)
+      else if (monthsLoaded < months.length) loadOlder()
+    }, { rootMargin: '800px' })
+    io.observe(el)
+    return () => io.disconnect()
+  }, [loading, shown, filtered.length, monthsLoaded, months.length]) // eslint-disable-line react-hooks/exhaustive-deps
+
   return (
     <>
-      <h1>Jobs</h1>
+      <h1>Jobs <small>from <a href="https://news.ycombinator.com/submitted?id=whoishiring" target="_blank" rel="noopener">HN "Who is hiring"</a></small></h1>
       <p className="sub">
-        {total ? `${total.toLocaleString()} openings from HN "Who is Hiring?"` : 'Loading…'}
+        {total
+          ? <>loaded {jobs.length.toLocaleString()} openings from last {monthsLoaded} months
+              {older > 0 && <> · <button className="linkbtn" onClick={loadOlder}>load {Math.min(MONTH_BATCH, older)} more months</button></>}</>
+          : 'Loading…'}
       </p>
 
       <input className="searchbox" type="search" placeholder="Search company, role, location, stack…"
@@ -151,7 +172,7 @@ export default function Jobs() {
         <button className="clearbtn" onClick={clear}>Clear</button>
       </div>
 
-      {!loading && (
+      {!loading && filtered.length !== jobs.length && (
         <p className="sub" style={{ margin: '14px 0 16px' }}>
           {filtered.length.toLocaleString()} result{filtered.length === 1 ? '' : 's'}
         </p>
@@ -161,12 +182,7 @@ export default function Jobs() {
         ? <div className="spinner" role="status" aria-label="Loading jobs" />
         : <div>{filtered.slice(0, shown).map((j) => <JobCard key={j.id} j={j} />)}</div>}
 
-      {!loading && (
-        <div className="loadbar">
-          {shown < filtered.length && <button onClick={() => setShown((s) => s + PAGE)}>Load more</button>}
-          {older > 0 && <button onClick={loadOlder}>Load older months ({older} more)</button>}
-        </div>
-      )}
+      {!loading && <div ref={sentinel} style={{ height: 1 }} />}
     </>
   )
 }

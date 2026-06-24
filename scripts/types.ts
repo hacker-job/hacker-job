@@ -47,3 +47,17 @@ export interface Hacker {
   url?: string;
   bio?: string;
 }
+
+export interface Founder {
+  login: string;
+  name: string | null;
+  avatar: string;
+  bio: string | null;
+  blog: string | null;
+  twitter: string | null;
+  location: string | null;
+  company: string | null;
+  followers: number;
+  html_url: string;
+  readme: string;
+}

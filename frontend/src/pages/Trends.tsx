@@ -79,12 +79,24 @@ export default function Trends() {
         <h2>Job posts per month</h2>
         <p className="hint">How many "Who is Hiring?" posts each month's thread collected.</p>
         <svg ref={volumeRef} className="chart"></svg>
+        <p className="note">
+          Hiring ran hot through <b>2018</b> and the <b>2021</b> boom (~840 posts/month), with a clear dip in
+          <b> April 2020</b> as COVID hit. It then more than halved through <b>2022–2023</b> — the tech-layoff and
+          rate-hike pullback, the same window <b>ChatGPT</b> launched (Nov 2022) — and has hovered near
+          <b> ~330/month</b> since. So the recent drop tracks the macro downturn; whether AI is also denting demand
+          is suggestive but not separable from it here.
+        </p>
       </section>
 
       <section className="panel">
         <h2>Average salary over time</h2>
         <p className="hint">USD only · months with ≥5 salary disclosures · mid = (min + max) / 2</p>
         <svg ref={salaryRef} className="chart"></svg>
+        <p className="note">
+          Disclosed salaries trend steadily up — roughly <b>$100k (2015) → $175k (2026)</b>, about <b>+75%</b> over the
+          decade, accelerating after the 2021 remote-hiring boom even as the <i>number</i> of postings fell. Early-year
+          points are based on few disclosures, so read pre-2016 loosely.
+        </p>
       </section>
 
       <section className="panel">
@@ -98,6 +110,10 @@ export default function Trends() {
           ))}
         </div>
         <svg ref={kwRef} className="chart"></svg>
+        <p className="note">
+          Toggle stacks to compare trajectories. The clearest recent shift is the climb in <b>AI / LLM</b> mentions over
+          the last few years; the big web frameworks have largely plateaued.
+        </p>
       </section>
     </>
   )

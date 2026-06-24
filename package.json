@@ -11,7 +11,8 @@
     "update": "tsx scripts/update.ts",
     "backfill": "tsx scripts/backfill.ts",
     "derive": "tsx scripts/derive.ts",
-    "hackers": "tsx scripts/fetchHackers.ts"
+    "hackers": "tsx scripts/fetchHackers.ts",
+    "founder": "tsx scripts/fetchFounder.ts"
   },
   "keywords": [
     "hacker-news",

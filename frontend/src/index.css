@@ -37,7 +37,13 @@ header.nav {
 
 .wrap { max-width: 1040px; margin: 0 auto; padding: 36px 24px 96px; }
 h1 { font-size: 1.7rem; margin: 0 0 4px; letter-spacing: -0.025em; font-weight: 700; }
+h1 small { font-size: 0.92rem; font-weight: 400; color: var(--muted); letter-spacing: 0; }
+h1 small a { color: var(--muted); text-decoration: underline; text-underline-offset: 2px; }
+h1 small a:hover { color: var(--accent); }
 p.sub { color: var(--muted); font-size: 0.9rem; margin: 0 0 24px; }
+.linkbtn { background: none; border: 0; padding: 0; font: inherit; color: var(--accent); cursor: pointer;
+  text-decoration: underline; text-underline-offset: 2px; }
+.linkbtn:hover { opacity: 0.8; }
 
 /* Loading */
 .spinner { width: 28px; height: 28px; margin: 64px auto; border: 3px solid var(--line); border-top-color: var(--accent);
@@ -93,6 +99,8 @@ summary:hover { color: var(--ink); }
 .panel h2 { font-size: 1.05rem; margin: 0 0 2px; letter-spacing: -0.015em; }
 .hint { color: var(--muted); font-size: 0.82rem; margin: 0 0 16px; }
 .chart { width: 100%; overflow: visible; }
+.note { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--line); font-size: 0.86rem; line-height: 1.65; color: #555; }
+.note b { color: var(--ink); font-weight: 600; }
 .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
 .chip { font-size: 0.82rem; padding: 5px 12px; border: 1px solid var(--line); background: #fff; color: #555;
         border-radius: 20px; cursor: pointer; transition: all .12s; }
@@ -100,7 +108,29 @@ summary:hover { color: var(--ink); }
 .chip.on { background: var(--accent); border-color: var(--accent); color: #fff; }
 .chip.on:hover { color: #fff; }
 
-/* Hackers */
+/* Hackers — featured founder */
+.founder { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 24px 26px; margin-bottom: 24px; }
+.founder-head { display: flex; gap: 18px; align-items: flex-start; }
+.founder-head img { width: 72px; height: 72px; border-radius: 50%; flex-shrink: 0; }
+.founder-name { font-weight: 650; font-size: 1.15rem; letter-spacing: -0.01em; }
+.founder-name a { color: var(--muted); font-size: 0.92rem; font-weight: 500; }
+.founder-bio { color: #333; margin-top: 3px; }
+.founder-links { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 10px; font-size: 0.86rem; color: var(--muted); }
+.founder-links a { color: var(--muted); }
+.founder-links a:hover { color: var(--accent); }
+.md { margin-top: 18px; padding-top: 18px; border-top: 1px solid var(--line); font-size: 0.92rem; line-height: 1.65; color: #333; }
+.md :first-child { margin-top: 0; }
+.md h1, .md h2, .md h3 { letter-spacing: -0.015em; margin: 1em 0 0.4em; }
+.md h1 { font-size: 1.2rem; } .md h2 { font-size: 1.05rem; } .md h3 { font-size: 0.98rem; }
+.md p { margin: 0.5em 0; }
+.md ul, .md ol { padding-left: 22px; margin: 0.5em 0; }
+.md li { margin: 0.2em 0; }
+.md img { max-width: 100%; }
+.md code { background: var(--bg); border: 1px solid var(--line); border-radius: 5px; padding: 1px 6px; font-size: 0.86em; }
+.md pre { background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 12px; overflow: auto; }
+.md pre code { border: 0; padding: 0; }
+
+/* Hackers — sponsors grid */
 .hackers-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 14px; margin-bottom: 36px; }
 .hacker { display: block; background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 20px; text-align: center; color: var(--ink); transition: border-color .15s, transform .15s, box-shadow .15s; }
 .hacker:hover { border-color: var(--line-strong); transform: translateY(-2px); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06); text-decoration: none; }
