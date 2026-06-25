@@ -13,9 +13,12 @@ const REPO = 'hacker-job/hacker-job-trends'
 const SUGGEST_URL = `https://github.com/${REPO}/issues/new?title=${encodeURIComponent('Suggest keyword: ')}`
   + `&body=${encodeURIComponent('Add this keyword to the Trends chart.\n\nKeyword: \nWhy it matters: ')}`
 
-// Render a chart.xkcd XY chart, then turn its fixed pixel size into a viewBox so
-// the SVG scales fluidly with its container via CSS (chart.xkcd sizes itself to
-// the parent's width and adds no viewBox of its own).
+// chart.xkcd sizes the SVG to its parent's width and adds no viewBox. We always
+// render it at a fixed large width so the layout (fonts, ticks, spacing) is the
+// desktop one, then convert that fixed pixel size into a viewBox so the SVG
+// scales down proportionally on small screens via CSS.
+const CHART_WIDTH = 700
+
 function useXkcdXY(build: () => unknown | null, deps: unknown[]) {
   const ref = useRef<SVGSVGElement>(null)
   useEffect(() => {
@@ -25,7 +28,13 @@ function useXkcdXY(build: () => unknown | null, deps: unknown[]) {
     svg.innerHTML = ''
     svg.removeAttribute('viewBox'); svg.removeAttribute('width'); svg.removeAttribute('height')
     if (!cfg) return
+    // Force the parent to the fixed render width so chart.xkcd always draws the
+    // large chart regardless of the actual screen size, then restore.
+    const parent = svg.parentElement as HTMLElement | null
+    const prevWidth = parent?.style.width ?? ''
+    if (parent) parent.style.width = CHART_WIDTH + 'px'
     new XY(svg, cfg)
+    if (parent) parent.style.width = prevWidth
     const w = svg.getAttribute('width'), h = svg.getAttribute('height')
     if (w && h) {
       svg.setAttribute('viewBox', `0 0 ${w} ${h}`)
