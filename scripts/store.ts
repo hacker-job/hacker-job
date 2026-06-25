@@ -5,12 +5,14 @@
  */
 import fs from "fs";
 import path from "path";
-import type { Job } from "./types.js";
+import type { Job, PendingPost } from "./types.js";
 
 export type { Job } from "./types.js";
 
 export const DATA_DIR = path.resolve("data");
 export const JOBS_DIR = path.join(DATA_DIR, "jobs");
+// Queue of fetched-but-unanalyzed posts: `fetch` appends, `analyze` drains it.
+export const PENDING_FILE = path.join(DATA_DIR, "pending.jsonl");
 
 // At load time we tag each job with the month of its file (not stored on disk).
 export type LoadedJob = Job & { month: string };
@@ -65,6 +67,25 @@ export function writeMonth(month: string, jobs: Job[]): void {
   fs.mkdirSync(JOBS_DIR, { recursive: true });
   const sorted = [...jobs].sort((a, b) => b.ts - a.ts); // newest first, stable diffs
   fs.writeFileSync(path.join(JOBS_DIR, `${month}.json`), sorted.map((j) => JSON.stringify(j)).join("\n") + "\n");
+}
+
+// --- Pending queue (fetch → analyze) --------------------------------------
+export function loadPending(): PendingPost[] {
+  if (!fs.existsSync(PENDING_FILE)) return [];
+  return fs.readFileSync(PENDING_FILE, "utf8")
+    .split("\n")
+    .filter((l) => l.trim())
+    .map((l) => JSON.parse(l) as PendingPost);
+}
+
+export function writePending(posts: PendingPost[]): void {
+  if (!posts.length) {
+    if (fs.existsSync(PENDING_FILE)) fs.rmSync(PENDING_FILE);
+    return;
+  }
+  fs.mkdirSync(DATA_DIR, { recursive: true });
+  const sorted = [...posts].sort((a, b) => a.ts - b.ts); // oldest first, stable diffs
+  fs.writeFileSync(PENDING_FILE, sorted.map((p) => JSON.stringify(p)).join("\n") + "\n");
 }
 
 export function loadAll(): LoadedJob[] {

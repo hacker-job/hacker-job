@@ -27,14 +27,12 @@ jobs:
 
       - run: npm ci
 
-      - name: Fetch sponsors + founder
+      - name: Fetch sponsors
         env:
           # PAT belonging to the sponsored account (sponsor lists are only visible
-          # to the sponsorable). Founder fetch also uses it to avoid rate limits.
+          # to the sponsorable).
           GITHUB_TOKEN: ${{ secrets.GH_PAT }}
-        run: |
-          npm run hackers || echo "hackers fetch skipped/failed (is GH_PAT set?)"
-          npm run founder
+        run: npm run hackers:fetch || echo "hackers fetch skipped/failed (is GH_PAT set?)"
 
       - name: Commit refreshed data
         run: |
@@ -45,5 +43,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add data/hackers.json
-          git commit -m "data: refresh sponsors + founder ($(date -u +%Y-%m-%d))"
+          git commit -m "data: refresh sponsors ($(date -u +%Y-%m-%d))"
           git push

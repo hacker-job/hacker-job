@@ -70,24 +70,26 @@ There is no database. The month files under `data/jobs/` *are* the dataset —
 each line is one job with the raw HN text and the AI-extracted fields. They're
 committed, so the dataset travels with the repo.
 
-**Daily incremental update** — pull new posts from the *current* "Who is hiring?"
-thread (people keep posting all month), AI-parse them, and append to the month's
-file:
+**Daily incremental update** — the pipeline is split into a cheap network step
+and the AI step, connected by a queue (`data/pending.jsonl`):
 
 ```bash
-npm run update     # current thread → parse new posts → append to data/jobs/<month>.json
+npm run jobs:fetch     # current thread → queue new posts (no AI, never fails on parsing)
+npm run jobs:analyze   # drain the queue → AI-parse → append to data/jobs/<month>.json
+npm run jobs:update    # convenience: jobs:fetch && jobs:analyze
 ```
 
-`update` also refreshes the manifest and `trends.json`; just commit `data/`
-afterwards. If you change the derivation itself (e.g. the keyword list in
-`scripts/store.ts`), run `npm run derive` to regenerate those without new data.
+`jobs:analyze` also refreshes the manifest and `trends.json`; just commit `data/`
+afterwards. Posts that fail to parse stay in the queue and are retried next run.
+If you change the derivation itself (e.g. the keyword list in `scripts/store.ts`),
+run `npm run jobs:derive` to regenerate those without new data.
 
 **Full rebuild from scratch** (disaster recovery) — walk every historical
 "Who is hiring?" thread and parse anything missing. Idempotent and expensive:
 
 ```bash
-npm run backfill        # all months (re-parses gaps only)
-npm run backfill 2025   # just months starting with "2025"
+npm run jobs:backfill        # all months (re-parses gaps only)
+npm run jobs:backfill 2025   # just months starting with "2025"
 ```
 
 LLM extraction uses the `openai` client; configure the endpoint/model via env
@@ -97,7 +99,7 @@ server).
 To refresh the Hackers list (needs a token belonging to the sponsored account):
 
 ```bash
-GITHUB_TOKEN=ghp_xxx npm run hackers   # → data/hackers.json
+GITHUB_TOKEN=ghp_xxx npm run hackers:fetch   # → data/hackers.json
 ```
 
 ## Automation

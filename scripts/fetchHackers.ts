@@ -1,7 +1,7 @@
 /**
  * Build data/hackers.json — all GitHub sponsors of @timqian.
  *
- * Usage:  GITHUB_TOKEN=ghp_xxx npm run hackers
+ * Usage:  GITHUB_TOKEN=ghp_xxx npm run hackers:fetch
  *
  * The token must belong to @timqian (sponsor identities are only visible to the
  * sponsorable account). Requires the `read:user` scope.

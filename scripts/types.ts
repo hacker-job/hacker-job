@@ -18,6 +18,17 @@ export interface Job {
   text: string;
 }
 
+// A job post fetched from HN but not yet AI-analyzed (the `fetch` → `analyze` queue).
+export interface RawPost {
+  id: number;
+  author: string | null;
+  ts: number; // created_at_i (unix seconds)
+  text: string;
+}
+export interface PendingPost extends RawPost {
+  month: string; // the thread's month, so analyze knows which file to write
+}
+
 export interface JobsManifest {
   months: string[]; // newest first
   count: number;

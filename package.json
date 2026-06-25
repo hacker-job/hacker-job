@@ -8,10 +8,12 @@
     "url": "git+https://github.com/timqian/hacker-job-trends.git"
   },
   "scripts": {
-    "update": "tsx scripts/update.ts",
-    "backfill": "tsx scripts/backfill.ts",
-    "derive": "tsx scripts/derive.ts",
-    "hackers": "tsx scripts/fetchHackers.ts"
+    "jobs:fetch": "tsx scripts/fetchJobs.ts",
+    "jobs:analyze": "tsx scripts/analyzeJobs.ts",
+    "jobs:update": "npm run jobs:fetch && npm run jobs:analyze",
+    "jobs:backfill": "tsx scripts/backfill.ts",
+    "jobs:derive": "tsx scripts/derive.ts",
+    "hackers:fetch": "tsx scripts/fetchHackers.ts"
   },
   "keywords": [
     "hacker-news",

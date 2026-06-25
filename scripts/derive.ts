@@ -1,9 +1,9 @@
 /**
  * Regenerate site/data/jobs/index.json (manifest) and site/data/trends.json
- * from the jobs store. `update`/`backfill` already do this after adding data —
- * run this only when you change the derivation itself (e.g. the keyword list).
+ * from the jobs store. `jobs:update`/`jobs:backfill` already do this after adding
+ * data — run this only when you change the derivation itself (e.g. the keyword list).
  *
- *   npm run derive
+ *   npm run jobs:derive
  */
 import { writeManifest, writeTrends } from "./store.js";
 
