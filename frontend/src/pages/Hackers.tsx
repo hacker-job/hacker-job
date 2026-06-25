@@ -50,7 +50,7 @@ export default function Hackers() {
         <section className="hacker hacker-join">
           <h2>Get listed here</h2>
           <ol className="steps">
-            <li>Sponsor <b>hacker-job</b> or <a href="https://github.com/sponsors/timqian" target="_blank" rel="noopener">timqian</a> on GitHub.</li>
+            <li>Sponsor hacker-job or <a href="https://github.com/sponsors/timqian" target="_blank" rel="noopener">timqian</a> on GitHub.</li>
             <li>Have <code>work with me</code> or <code>hire me</code> on your GitHub profile README (e.g. <a href="https://github.com/timqian/timqian" target="_blank" rel="noopener">timqian/timqian</a>).</li>
             <li>Your info will appear here soon. ✨</li>
           </ol>
