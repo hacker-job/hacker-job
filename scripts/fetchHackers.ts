@@ -23,7 +23,23 @@ interface Hacker {
   avatar?: string;
   url?: string;
   bio?: string;
+  location?: string;
+  blog?: string;
+  twitter?: string;
+  readme?: string;
 }
+
+// The founder is always listed first, alongside the sponsors.
+const FOUNDER: Hacker = {
+  login: "timqian",
+  name: "Tim Qian",
+  avatar: "https://avatars.githubusercontent.com/u/5512552?v=4",
+  url: "https://github.com/timqian",
+  bio: "Build something I want",
+  location: "ChongQing, China",
+  blog: "t9t.io",
+  twitter: "tim_qian",
+};
 
 async function gql<T>(query: string, variables: Record<string, unknown>): Promise<T> {
   const res = await fetch("https://api.github.com/graphql", {
@@ -43,6 +59,9 @@ interface SponsorNode {
   url: string;
   bio?: string | null;
   description?: string | null;
+  location?: string | null;
+  websiteUrl?: string | null;
+  twitterUsername?: string | null;
 }
 interface SponsorsPage {
   user: {
@@ -64,8 +83,8 @@ async function listSponsors(): Promise<SponsorNode[]> {
             pageInfo { hasNextPage endCursor }
             nodes {
               __typename
-              ... on User { login name avatarUrl url bio }
-              ... on Organization { login name avatarUrl url description }
+              ... on User { login name avatarUrl url bio location websiteUrl twitterUsername }
+              ... on Organization { login name avatarUrl url description location websiteUrl twitterUsername }
             }
           }
         }
@@ -79,17 +98,36 @@ async function listSponsors(): Promise<SponsorNode[]> {
   return out;
 }
 
+// A sponsor's GitHub profile README (their <login>/<login> repo), or "" if none.
+async function fetchReadme(login: string): Promise<string> {
+  const res = await fetch(`https://api.github.com/repos/${login}/${login}/readme`, {
+    headers: { Authorization: `bearer ${token}`, Accept: "application/vnd.github.raw+json" },
+  });
+  return res.ok ? res.text() : "";
+}
+
 async function main() {
   const sponsors = await listSponsors();
   console.log(`Found ${sponsors.length} sponsor(s) of @${SPONSORABLE}.`);
 
-  const hackers: Hacker[] = sponsors.map((s) => ({
-    login: s.login,
-    name: s.name || undefined,
-    avatar: s.avatarUrl,
-    url: s.url,
-    bio: (s.bio || s.description) || undefined,
-  }));
+  const others = await Promise.all(
+    sponsors
+      .filter((s) => s.login !== FOUNDER.login)
+      .map(async (s) => ({
+        login: s.login,
+        name: s.name || undefined,
+        avatar: s.avatarUrl,
+        url: s.url,
+        bio: (s.bio || s.description) || undefined,
+        location: s.location || undefined,
+        blog: s.websiteUrl || undefined,
+        twitter: s.twitterUsername || undefined,
+        readme: (await fetchReadme(s.login)) || undefined,
+      }))
+  );
+
+  const founder: Hacker = { ...FOUNDER, readme: (await fetchReadme(FOUNDER.login)) || undefined };
+  const hackers: Hacker[] = [founder, ...others];
 
   const out = path.resolve("data/hackers.json");
   fs.writeFileSync(out, JSON.stringify(hackers, null, 2) + "\n");

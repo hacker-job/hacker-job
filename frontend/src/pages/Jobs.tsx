@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { getManifest, getMonth, type Job } from '../data.ts'
-import GitHubButton from 'react-github-btn'
-const REPO = 'hacker-job/hacker-job-trends'
+const REPO = 'hacker-job/hacker-job'
 const PAGE = 50         // rendered cards revealed per scroll step
 const MONTH_BATCH = 3   // months fetched per batch
 const DESC_LIMIT = 1200
@@ -126,9 +125,7 @@ export default function Jobs() {
       <p className="sub">
         Recent openings from HN's monthly <a href="https://news.ycombinator.com/submitted?id=whoishiring" target="_blank" rel="noopener">"Who is hiring?"</a> threads.
       </p>
-      <div style={{ position: 'absolute', top: 0, right: 0, margin: '8px 12px 0 0' }}>
-        <GitHubButton href="https://github.com/hacker-job/hacker-job-trends" data-color-scheme="no-preference: light; light: light; dark: dark;" data-size="large" data-show-count="true" aria-label="Star hacker-job/hacker-job-trends on GitHub">Star</GitHubButton>
-      </div>
+
       <input className="searchbox" type="search" placeholder="Search company, role, location, stack…"
         value={q} onChange={(e) => setQ(e.target.value)} />
       <div className="filters">
