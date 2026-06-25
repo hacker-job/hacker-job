@@ -13,6 +13,7 @@ concurrency:
   cancel-in-progress: false
 permissions:
   contents: write
+  actions: write # to trigger the deploy workflow after a data change
 
 jobs:
   update:
@@ -39,9 +40,11 @@ jobs:
         run: npm run jobs:analyze
 
       - name: Commit refreshed data
+        id: commit
         run: |
           if [ -z "$(git status --porcelain data)" ]; then
             echo "No data changes."
+            echo "changed=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
           git config user.name "github-actions[bot]"
@@ -49,3 +52,13 @@ jobs:
           git add data
           git commit -m "data: daily update ($(date -u +%Y-%m-%d))"
           git push
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+
+      # A push made with GITHUB_TOKEN does NOT trigger other workflows (GitHub's
+      # anti-recursion rule), so deploy.yml's `push` trigger never fires for the
+      # data commit. Dispatch it explicitly when the data actually changed.
+      - name: Trigger deploy
+        if: steps.commit.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh workflow run deploy.yml --ref main
