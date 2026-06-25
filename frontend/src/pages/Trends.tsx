@@ -13,12 +13,33 @@ const REPO = 'hacker-job/hacker-job-trends'
 const SUGGEST_URL = `https://github.com/${REPO}/issues/new?title=${encodeURIComponent('Suggest keyword: ')}`
   + `&body=${encodeURIComponent('Add this keyword to the Trends chart.\n\nKeyword: \nWhy it matters: ')}`
 
+// Render a chart.xkcd XY chart, then turn its fixed pixel size into a viewBox so
+// the SVG scales fluidly with its container via CSS (chart.xkcd sizes itself to
+// the parent's width and adds no viewBox of its own).
+function useXkcdXY(build: () => unknown | null, deps: unknown[]) {
+  const ref = useRef<SVGSVGElement>(null)
+  useEffect(() => {
+    const svg = ref.current
+    if (!svg) return
+    const cfg = build()
+    svg.innerHTML = ''
+    svg.removeAttribute('viewBox'); svg.removeAttribute('width'); svg.removeAttribute('height')
+    if (!cfg) return
+    new XY(svg, cfg)
+    const w = svg.getAttribute('width'), h = svg.getAttribute('height')
+    if (w && h) {
+      svg.setAttribute('viewBox', `0 0 ${w} ${h}`)
+      svg.setAttribute('preserveAspectRatio', 'xMidYMid meet')
+      svg.removeAttribute('width'); svg.removeAttribute('height')
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, deps)
+  return ref
+}
+
 export default function Trends() {
   const [data, setData] = useState<TrendsData | null>(null)
   const [selected, setSelected] = useState<Set<string>>(new Set())
-  const volumeRef = useRef<SVGSVGElement>(null)
-  const salaryRef = useRef<SVGSVGElement>(null)
-  const kwRef = useRef<SVGSVGElement>(null)
 
   useEffect(() => {
     getTrends().then((t) => {
@@ -27,42 +48,30 @@ export default function Trends() {
     }).catch(console.error)
   }, [])
 
-  // Volume + salary charts — draw once when data arrives.
-  useEffect(() => {
-    if (!data) return
-    if (volumeRef.current) {
-      volumeRef.current.innerHTML = ''
-      new XY(volumeRef.current, {
-        yLabel: 'job posts',
-        data: { datasets: [{ label: 'Posts / month', data: data.volume }] },
-        options: { xTickCount: 8, yTickCount: 5, timeFormat: 'YYYY-MM', showLine: true, dotSize: 0.4,
-          legendPosition: upLeft, dataColors: ['#3a5a8a'] },
-      })
-    }
-    if (salaryRef.current) {
-      salaryRef.current.innerHTML = ''
-      new XY(salaryRef.current, {
-        yLabel: 'USD',
-        data: { datasets: [{ label: 'Avg mid salary', data: data.salary }] },
-        options: { xTickCount: 8, yTickCount: 5, timeFormat: 'YYYY-MM', showLine: true, dotSize: 0.4,
-          legendPosition: upLeft, dataColors: ['#e85d04'] },
-      })
-    }
-  }, [data])
+  const base = { xTickCount: 8, yTickCount: 5, timeFormat: 'YYYY-MM', showLine: true, legendPosition: upLeft }
 
-  // Keyword chart — redraw when the selection changes.
-  useEffect(() => {
-    if (!data || !kwRef.current) return
-    kwRef.current.innerHTML = ''
+  const salaryRef = useXkcdXY(() => !data ? null : ({
+    yLabel: 'USD',
+    data: { datasets: [{ label: 'Avg mid salary', data: data.salary }] },
+    options: { ...base, dotSize: 0.4, dataColors: ['#e85d04'] },
+  }), [data])
+
+  const volumeRef = useXkcdXY(() => !data ? null : ({
+    yLabel: 'job posts',
+    data: { datasets: [{ label: 'Posts / month', data: data.volume }] },
+    options: { ...base, dotSize: 0.4, dataColors: ['#3a5a8a'] },
+  }), [data])
+
+  const kwRef = useXkcdXY(() => {
+    if (!data) return null
     const active = data.keywords.filter((k) => selected.has(k.key))
-    if (!active.length) return
+    if (!active.length) return null
     const colorFor = (key: string) => PALETTE[data.keywords.findIndex((k) => k.key === key) % PALETTE.length]
-    new XY(kwRef.current, {
+    return {
       yLabel: '% of jobs',
       data: { datasets: active.map((k) => ({ label: k.label, data: k.data })) },
-      options: { xTickCount: 8, yTickCount: 5, timeFormat: 'YYYY-MM', showLine: true, dotSize: 0.4,
-        legendPosition: upLeft, dataColors: active.map((k) => colorFor(k.key)) },
-    })
+      options: { ...base, dotSize: 0.4, dataColors: active.map((k) => colorFor(k.key)) },
+    }
   }, [data, selected])
 
   const toggle = (key: string) => setSelected((prev) => {
@@ -89,7 +98,7 @@ export default function Trends() {
       <section className="panel">
         <h2>Average salary over time</h2>
         <p className="hint">USD only · months with ≥5 salary disclosures · mid = (min + max) / 2</p>
-        <div>
+        <div className="chart-box">
           <svg ref={salaryRef} className="chart"></svg>
         </div>
       </section>
@@ -97,7 +106,7 @@ export default function Trends() {
       <section className="panel">
         <h2>Job posts per month</h2>
         <p className="hint">How many "Who is Hiring?" posts each month's thread collected.</p>
-        <div>
+        <div className="chart-box">
           <svg ref={volumeRef} className="chart"></svg>
         </div>
         <p className="note">
@@ -116,7 +125,7 @@ export default function Trends() {
           ))}
           <a className="chip suggest" href={SUGGEST_URL} target="_blank" rel="noopener">+ Suggest new keyword</a>
         </div>
-        <div>
+        <div className="chart-box">
           <svg ref={kwRef} className="chart"></svg>
         </div>
       </section>
