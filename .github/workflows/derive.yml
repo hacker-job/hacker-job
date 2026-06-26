@@ -1,0 +1,60 @@
+name: Re-derive data
+
+# The derived files (data/trends.json, data/jobs/index.json) depend on the
+# pipeline logic in scripts/store.ts (keyword list, salary/keyword derivation).
+# When that logic changes, regenerate them from the existing jobs so the site
+# reflects the change immediately — no need to wait for the daily update (which
+# only re-derives on days that add new jobs).
+on:
+  push:
+    branches: [main]
+    paths:
+      - scripts/store.ts
+      - scripts/derive.ts
+  workflow_dispatch: {}
+
+concurrency:
+  group: re-derive
+  cancel-in-progress: false
+permissions:
+  contents: write
+  actions: write # to trigger the deploy workflow after a data change
+
+jobs:
+  derive:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Re-derive trends + manifest
+        run: npm run jobs:derive
+
+      - name: Commit refreshed data
+        id: commit
+        run: |
+          if [ -z "$(git status --porcelain data)" ]; then
+            echo "No data changes."
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data
+          git commit -m "data: re-derive after pipeline change ($(date -u +%Y-%m-%d))"
+          git push
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+
+      # A push made with GITHUB_TOKEN doesn't trigger deploy.yml's push event, so
+      # dispatch it explicitly when the derived data actually changed.
+      - name: Trigger deploy
+        if: steps.commit.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh workflow run deploy.yml --ref main
