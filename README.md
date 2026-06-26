@@ -62,6 +62,7 @@ override with `LLM_BASE_URL` / `LLM_API_KEY` / `LLM_MODEL`.
 | Workflow | What it does | Secrets |
 |---|---|---|
 | [`update.yml`](.github/workflows/update.yml) | Daily (13:00 UTC): fetch + analyze, commit `data/` | `LLM_BASE_URL`, `LLM_API_KEY`, `LLM_MODEL` |
+| [`derive.yml`](.github/workflows/derive.yml) | On push to `main` touching `scripts/store.ts` or `scripts/derive.ts`: re-derive `trends.json` + manifest from existing jobs, commit, and trigger deploy | — |
 | [`refresh-github-data.yml`](.github/workflows/refresh-github-data.yml) | Refresh sponsors | `GH_PAT` (token of the sponsored account, `read:user`) |
 | [`deploy.yml`](.github/workflows/deploy.yml) | Build `frontend/` + dataset → GitHub Pages on push to `main` | — |
 
